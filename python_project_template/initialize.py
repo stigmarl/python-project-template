@@ -70,4 +70,9 @@ def initialize_project() -> None:
     os.system(f"poetry add --group dev mypy ruff black --directory {project_name}")
     os.system(f"poetry add --group test pytest --directory {project_name}")
     os.system(f"poetry lock --directory {project_name}")
-    os.system(f"poetry install --directory {project_name}")
+    print("Should the project also be installed?")
+    no_root_install = choice("--no-root", ["yes", "no"], "no")
+    if no_root_install == "yes":
+        os.system(f"poetry install --directory {project_name}")
+    else:
+        os.system(f"poetry install --directory {project_name} --no-root")
