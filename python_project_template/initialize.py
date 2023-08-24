@@ -1,8 +1,9 @@
 import os
 
+import click
 import requests
 
-from .utils import choice, prompt
+from . import __version__
 
 main_template = """
 def main() -> None:
@@ -34,8 +35,10 @@ gitignore_vscode_template = """
 """
 
 
+@click.command()
+@click.version_option(version=__version__, prog_name="initialize_python_project")
 def initialize_project() -> None:
-    project_name = prompt("project_name").replace(" ", "-").lower()
+    project_name = click.prompt("Enter project name", type=click.STRING).lower()
     package_name = project_name.replace("-", "_")
 
     os.system(f"poetry new {project_name}")
@@ -58,9 +61,10 @@ def initialize_project() -> None:
     if not os.path.isdir(os.path.join(project_name, ".git")):
         os.system(f"cd {project_name} && git init")
 
-    print("Should a basic .vscode/settings.json file be included?")
-    vscode_settings_template_include = choice("settings.json", ["yes", "no"], "yes")
-    if vscode_settings_template_include == "yes":
+    vscode_settings_template_include = click.confirm(
+        "Should a basic .vscode/settings.json file be included?", default=True
+    )
+    if vscode_settings_template_include:
         os.mkdir(os.path.join(project_name, ".vscode"))
         with open(
             os.path.join(project_name, ".vscode/settings.json"), "w"
@@ -70,9 +74,11 @@ def initialize_project() -> None:
     os.system(f"poetry add --group dev mypy ruff black --directory {project_name}")
     os.system(f"poetry add --group test pytest --directory {project_name}")
     os.system(f"poetry lock --directory {project_name}")
-    print("Should the project also be installed?")
-    no_root_install = choice("--no-root", ["yes", "no"], "no")
-    if no_root_install == "yes":
+
+    no_root_install = click.confirm(
+        "Do you want to install with no root?", default=False
+    )
+    if no_root_install:
         os.system(f"poetry install --directory {project_name}")
     else:
         os.system(f"poetry install --directory {project_name} --no-root")
